@@ -5,8 +5,14 @@ services:
       dockerfile: docker/php/Dockerfile
       args:
         PHP_TAG: ${PHP_TAG:-8.5-fpm-alpine}
+    environment:
+      APP_DIR: /app
+      SYMFONY_VERSION: ${SYMFONY_VERSION:-8.0.x}
+      SYMFONY_PACK: ${SYMFONY_PACK:-api}
+      COMPOSER_ALLOW_SUPERUSER: "1"
     volumes:
       - ./app:/app
+      - composer_cache:/tmp/composer
 
   caddy:
     image: caddy:2
@@ -17,3 +23,6 @@ services:
     volumes:
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./app:/srv:ro
+
+volumes:
+  composer_cache:
