@@ -1,7 +1,9 @@
 {
-  auto_https off
+    auto_https off
 }
 
 :80 {
-  respond "Caddy up ✅" 200
+    root * /srv/public
+    php_fastcgi php:9000
+    file_server
 }

@@ -1,7 +1,19 @@
 services:
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        PHP_TAG: ${PHP_TAG:-8.5-fpm-alpine}
+    volumes:
+      - ./app:/app
+
   caddy:
     image: caddy:2
+    depends_on:
+      - php
     ports:
       - "8080:80"
     volumes:
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./app:/srv:ro
