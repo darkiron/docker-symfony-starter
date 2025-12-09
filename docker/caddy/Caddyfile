@@ -1,9 +1,21 @@
 {
     auto_https off
+    log {
+            level DEBUG
+        }
 }
 
 :80 {
-    root * /srv/public
-    php_fastcgi php:9000
+    root * /app/public
+    encode gzip
+
+    # Servez les fichiers statiques directement
     file_server
+
+    # Déléguez le reste à PHP-FPM
+    php_fastcgi php:9000
+
+    handle_errors {
+        respond "Caddy up ✅ : {http.error.status_code} {http.error.message}" {http.error.status_code}
+    }
 }

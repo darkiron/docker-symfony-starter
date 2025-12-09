@@ -5,6 +5,7 @@ services:
       dockerfile: docker/php/Dockerfile
       args:
         PHP_TAG: ${PHP_TAG:-8.5-fpm-alpine}
+    command: ["php-fpm", "-F"]
     environment:
       APP_DIR: /app
       SYMFONY_VERSION: ${SYMFONY_VERSION:-8.0.x}
@@ -13,16 +14,29 @@ services:
     volumes:
       - ./app:/app
       - composer_cache:/tmp/composer
+      - ./docker/php/fpm.conf:/usr/local/etc/php-fpm.d/zz-logs.conf:ro
+    expose:
+      - "9000"
+    healthcheck:
+      # Use $$ to escape $ from Compose's env interpolation
+      test: ["CMD", "php", "-r", "$$s=fsockopen('127.0.0.1',9000,$$e,$$t,1); if(!$$s) exit(1); fclose($$s);"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
 
   caddy:
     image: caddy:2
     depends_on:
-      - php
+      php:
+        condition: service_healthy
     ports:
-      - "8080:80"
+      - "80:80"
     volumes:
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./app:/srv:ro
+      - ./app:/app:ro
+    restart: unless-stopped
 
 volumes:
   composer_cache:
